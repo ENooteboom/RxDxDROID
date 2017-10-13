@@ -1,0 +1,77 @@
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++
+Author      : Fahmi Ghani
+Date        : 4 July 2015
+Project     : Joystick control dc motor
+Component   : Analog Joystick
+              2Amp motor driver shield
+              DC Motor
+Description : Control DC motor direction using Joystick
+Video link  : http://youtu.be/fUo7tBSh9LE
++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+ 
+//Set pin numbers:
+const byte joyStickPin = A1;
+const byte motorSpeedPin = 5;
+const byte motorDirPin = 4;
+ 
+//variables
+//Joystick input variables
+int joyValue = 0;
+int joyValueMax = 1023;
+int joyValueMin = 0;
+int joyValueMid = 512;
+int joyValueMidUpper = joyValueMid + 20;
+int joyValueMidLower = joyValueMid - 20;
+ 
+//DC motor variables
+byte motorSpeed = 0;
+byte motorSpeedMax = 255;
+byte motorSpeedMin = 90; //set to smallest value that make motor move (default 0)
+                         // DC motor that I use start to move at 90 pwm value
+ 
+void setup()
+{
+    pinMode(joyStickPin, INPUT);
+    pinMode(motorSpeedPin, OUTPUT);
+    pinMode(motorDirPin, OUTPUT);
+}
+ 
+void loop()
+{
+    joyValue = analogRead(joyStickPin);
+   
+    if(joyValue > joyValueMidUpper) //Forward
+    {
+        motorSpeed = map(joyValue, joyValueMidUpper, joyValueMax, motorSpeedMin, motorSpeedMax);
+        MotorForward(motorSpeed);
+    }
+    else if(joyValue < joyValueMidLower) //Backward
+    {
+        motorSpeed = map(joyValue, joyValueMidLower, joyValueMin, motorSpeedMin, motorSpeedMax);
+        MotorBackward(motorSpeed);
+    }
+    //joyValue Between joyValueMidLower - joyValueMidUpper.
+    //Need some range here, because joystick sometime not in  exact center.
+    else
+    {
+       MotorStop();
+    }
+   
+ 
+}
+void MotorForward( byte Spd)
+{
+    digitalWrite(motorDirPin, HIGH);
+    analogWrite(motorSpeedPin, Spd);
+}
+ 
+void MotorBackward( byte Spd)
+{
+    digitalWrite(motorDirPin, LOW);
+    analogWrite(motorSpeedPin, Spd);
+}
+ 
+void MotorStop()
+{
+    analogWrite(motorSpeedPin, 0);  
+}
