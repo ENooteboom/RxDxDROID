@@ -28,26 +28,27 @@ PS4BT PS4(&Btd, PAIR);
 //const byte joyStickPin4L3 = ????;
 //const byte joyStickPinR3 = ????;
 
-const byte motorL2R2SpeedPin = 3; //neck mtr
-const byte L2R2motorDirPin = 7; //nect turn direction??????
+const byte motorL2R2SpeedPin = 3; //neck motor
+const byte L2R2motorDirPin = 7; //neck turn direction??????
 
-const byte motorL3SpeedPin = 5; //left drive mtr
-const byte motorR3SpeedPin = 6; //right drive mtr
-const byte LmotorDirPin = 2; //direction of left drive mtr
-const byte RmotorDirPin = 4; //direction of left drive mtr
+const byte motorL3SpeedPin = 5; //left drive motor
+const byte motorR3SpeedPin = 6; //right drive motor
+const byte LmotorDirPin = 2; //direction of left drive motor
+const byte RmotorDirPin = 4; //direction of left drive motor
 
 
 //varialbes 
 
   //stick 
-  //int JoyVal = 0;
+  int LJoyVal = 0;
+  int RJoyVal = 0;
   int JoyValMax = 1023;
   int JoyValMid = 512;
   int JoyvalMin = 0;
-  int joyValMidHigh = JoyValMid + 40;
-  int joyValMidLow = JoyValMid - 40;
+  int joyValMidHigh = JoyValMid + 20; //20-40
+  int joyValMidLow = JoyValMid - 20;
 
-  //dc mtr
+  //dc motors
   byte motorSpeed = 0;
   byte motorSpeedMin = 0; //based on motor 0 - 90 pwm ish
   byte motorSpeedMax = 255;
@@ -65,11 +66,11 @@ void setup() {
   }
   Serial.print(F("\r\nPS4 Bluetooth Library Started")); //Take out after debug
   
-//mtr setup
+//motor setup
   pinMode(motorL3SpeedPin,OUTPUT);
   pinMode(LmotorDirPin,OUTPUT);
-  //pinMode(,OUTPUT);
-  //pinMode(,OUTPUT);
+  pinMode(motorR3SpeedPin,OUTPUT);
+  pinMode(RmotorDirPin,OUTPUT);
   
 }
 void loop() {
@@ -78,40 +79,39 @@ void loop() {
 //code below
   if (PS4.connected()) {
     
-//test for jtr, analog joystick tank drive, forward nad revers with output for driver
-    if (/*PS4.getAnalogHat(LeftHatX) > 137 || PS4.getAnalogHat(LeftHatX) < 117 || */PS4.getAnalogHat(LeftHatY) > 137 || PS4.getAnalogHat(LeftHatY) < 117 || /*PS4.getAnalogHat(RightHatX) > 137 || PS4.getAnalogHat(RightHatX) < 117 ||*/ PS4.getAnalogHat(RightHatY) > 137 || PS4.getAnalogHat(RightHatY) < 117) {
+//test for motor motion/jitter, analog joystick tank drive, forward and reverse with output 
+
+  LJoyVal = PS4.getAnalogHat(LeftHatY);
+  RJoyVal = PS4.getAnalogHat(RightHatY);
       
-      if(PS4.getAnalogHat(LeftHatY) > joyValMidHigh ){ //drive left reverse
-          motorSpeed = map();
-          
+      if(LJoyVal > joyValMidHigh ){ //drive left reverse   ????????????????
+          motorSpeed = map(LJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
+          MotorReverseL(motorSpeed);
         }
-      if else(PS4.getAnalogHat(LeftHatY) < joyValMidLow ){ //drive left forward
-          motorSpeed = map(PS4.getAnalogHat(LeftHatY), joyValMidHigh, JoyValMax);
-          
-        } 
-      else , motorSpeedMin
-      {
-        analogWrite(/*motorSpeedPin*/, 0); 
-      }
-   /*   
-      if(PS4.getAnalogHat(RightHatY) > joyValMidHigh ){ //drive right reverse
-          motorSpeed = map();
-        } 
-      if(PS4.getAnalogHat(RightHatY) < joyValMidLow ){ //drive right foward
-          motorSpeed = map();
+      else if(LJoyVal < joyValMidLow ){ //drive left forward   ????????????
+          motorSpeed = map(LJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
+          MotorForwardL(motorSpeed);
         } 
       else 
       {
-        analogWrite(, 0); 
+        MotorStopL();
       }
-    */  
       
-      //Serial.print(F("\r\nLeftHatX: "));
-      //Serial.print(PS4.getAnalogHat(LeftHatX));
-      Serial.print(F("\r\nLeftHatY: "));
+      if(RJoyVal > joyValMidHigh ){ //drive right reverse
+          motorSpeed = map(RJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
+          MotorReverseR(motorSpeed);
+        }
+      else if(RJoyVal < joyValMidLow ){ //drive right foward
+          motorSpeed = map(RJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
+          MotorForwardR(motorSpeed);
+        } 
+      else 
+      {
+        MotorStopR(); 
+      }
+      
+      Serial.print(F("\r\nLeftHatY: "));            //For Debug, remove me
       Serial.print(PS4.getAnalogHat(LeftHatY));
-      //Serial.print(F("\tRightHatX: "));
-      //Serial.print(PS4.getAnalogHat(RightHatX));
       Serial.print(F("\tRightHatY: "));
       Serial.print(PS4.getAnalogHat(RightHatY));
     }
@@ -234,4 +234,40 @@ void loop() {
 */
       
     }
-  }
+  
+
+//Motor Functions 
+      void MotorForwardL( byte Spd)
+      {
+         digitalWrite(LmotorDirPin, HIGH);
+         analogWrite(motorL3SpeedPin, Spd);
+      }
+ 
+      void MotorReverseL( byte Spd)
+      {
+         digitalWrite(LmotorDirPin, LOW);
+         analogWrite(motorL3SpeedPin, Spd);
+      }
+       void MotorForwardR( byte Spd)
+      {
+         digitalWrite(RmotorDirPin, HIGH);
+         analogWrite(motorR3SpeedPin, Spd);
+      }
+ 
+      void MotorReverseR( byte Spd)
+      {
+         digitalWrite(RmotorDirPin, LOW);
+         analogWrite(motorR3SpeedPin, Spd);
+      }
+ 
+      void MotorStopL()
+      {
+         analogWrite(motorL3SpeedPin, 0);  
+      }
+
+        void MotorStopR()
+      {
+         analogWrite(motorR3SpeedPin, 0);  
+      }
+
+
