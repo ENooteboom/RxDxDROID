@@ -23,6 +23,7 @@ PS4BT PS4(&Btd, PAIR);
 //bool printAngle, printTouch;
 //uint8_t oldL2Value, oldR2Value;
 
+//---------------------------------------------------------------------------------------------------------------------------------
 //drive pin numbers
 
 //const byte joyStickPin4L3 = ????;
@@ -35,11 +36,10 @@ const byte motorL3SpeedPin = 5; //left drive motor
 const byte motorR3SpeedPin = 6; //right drive motor
 const byte LmotorDirPin = 2; //direction of left drive motor
 const byte RmotorDirPin = 4; //direction of left drive motor
-
-
+//---------------------------------------------------------------------------------------------------------------------------------
 //varialbes 
 
-  //stick 
+  //stick drive 
   int LJoyVal = 0;
   int RJoyVal = 0;
   int JoyValMax = 1023;
@@ -52,7 +52,7 @@ const byte RmotorDirPin = 4; //direction of left drive motor
   byte motorSpeed = 0;
   byte motorSpeedMin = 0; //based on motor 0 - 90 pwm ish
   byte motorSpeedMax = 255;
-
+//---------------------------------------------------------------------------------------------------------------------------------
 
 void setup() {
 //serial debug for ps4 bt test
@@ -73,6 +73,9 @@ void setup() {
   pinMode(RmotorDirPin,OUTPUT);
   
 }
+//---------------------------------------------------------------------------------------------------------------------------------
+
+
 void loop() {
   Usb.Task();
 
@@ -94,7 +97,7 @@ void loop() {
         } 
       else 
       {
-        MotorStopL();
+        MotorStopL(); 
       }
       
       if(RJoyVal > joyValMidHigh ){ //drive right reverse
@@ -115,8 +118,13 @@ void loop() {
       Serial.print(F("\tRightHatY: "));
       Serial.print(PS4.getAnalogHat(RightHatY));
     }
+//---------------------------------------------------------------------------------------------------------------------------------
+ 
+//triggers for head rotations,0 - 255 is max for pull
     
-  //triggers for head rotations 
+
+
+  
 /*
     if (PS4.getAnalogButton(L2) || PS4.getAnalogButton(R2)) { // These are the only analog buttons on the PS4 controller
       Serial.print(F("\r\nL2: "));
@@ -133,12 +141,17 @@ void loop() {
     oldL2Value = PS4.getAnalogButton(L2);
     oldR2Value = PS4.getAnalogButton(R2);
 */
+//---------------------------------------------------------------------------------------------------------------------------------
 
+//ps disconnect
     if (PS4.getButtonClick(PS)) {
       Serial.print(F("\r\nPS"));
       PS4.disconnect();
     }
-//ps disconnect above and buttons, rumble and led flash
+
+//---------------------------------------------------------------------------------------------------------------------------------
+    
+//buttons, rumble and led flash
 /*    
     else {
       if (PS4.getButtonClick(TRIANGLE)) {
@@ -158,6 +171,7 @@ void loop() {
         PS4.setLedFlash(0, 0); // Turn off blinking
       }
 */
+//---------------------------------------------------------------------------------------------------------------------------------
 
 //D-pad and colors 
 /*
@@ -175,6 +189,7 @@ void loop() {
         PS4.setLed(Green);
       }
 */
+//---------------------------------------------------------------------------------------------------------------------------------
 
 //L1,L3,R1,R3 buttons
 /*
@@ -187,6 +202,7 @@ void loop() {
       if (PS4.getButtonClick(R3))
         Serial.print(F("\r\nR3"));
 */
+//---------------------------------------------------------------------------------------------------------------------------------
 
   //share and options
 /*
@@ -197,6 +213,7 @@ void loop() {
         printAngle = !printAngle;
       }
 */
+//---------------------------------------------------------------------------------------------------------------------------------
 
   //touchpad 
 /*      
@@ -205,6 +222,7 @@ void loop() {
         printTouch = !printTouch;
       }
 */
+//---------------------------------------------------------------------------------------------------------------------------------
 
   //tilt for options
 /*
@@ -215,6 +233,7 @@ void loop() {
         Serial.print(PS4.getAngle(Roll));
       }
 */
+//---------------------------------------------------------------------------------------------------------------------------------
       
   //touch for touchpad   
 /*
@@ -232,9 +251,11 @@ void loop() {
         }
       }
 */
+//---------------------------------------------------------------------------------------------------------------------------------
       
     }
   
+//---------------------------------------------------------------------------------------------------------------------------------
 
 //Motor Functions 
       void MotorForwardL( byte Spd)
@@ -269,5 +290,5 @@ void loop() {
       {
          analogWrite(motorR3SpeedPin, 0);  
       }
-
+//---------------------------------------------------------------------------------------------------------------------------------
 
