@@ -42,20 +42,20 @@ const byte RmotorDirPin = 4; //direction of left drive motor
 //stick drive
 int LJoyVal = 0;
 int RJoyVal = 0;
-int JoyValMax = 1023;
-int JoyValMid = 512;
+int JoyValMax = 255;
+int JoyValMid = 255/2;
 int JoyValMin = 0;
-int joyValMidHigh = JoyValMid + 20; //20-40
-int joyValMidLow = JoyValMid - 20;
+int joyValMidHigh = JoyValMid + 5; //0-20
+int joyValMidLow = JoyValMid - 5;
 
 int L2TrigVal = 0;
 int R2TrigVal = 0;
-int TrigValMax = 1023;
-int TrigValMin = 0;
-int TrigBaseVal = 5; //5-10?????
+int TrigBaseVal = 5; //5-10 ish?????
 
 //dc motors
-byte motorSpeed = 0;
+byte NmotorSpeed = 0;
+byte LmotorSpeed = 0;
+byte RmotorSpeed = 0;
 byte motorSpeedMin = 0; //based on motor 0 - 90 pwm ish
 byte motorSpeedMax = 255;
 //---------------------------------------------------------------------------------------------------------------------------------
@@ -99,12 +99,12 @@ void loop() {
     RJoyVal = PS4.getAnalogHat(RightHatY);
 
     if (LJoyVal > joyValMidHigh ) { //drive left reverse   ????????????????
-      motorSpeed = map(LJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
-      MotorReverseL(motorSpeed);
+      LmotorSpeed = map(LJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
+      MotorReverseL(LmotorSpeed);
     }
     else if (LJoyVal < joyValMidLow ) { //drive left forward   ????????????
-      motorSpeed = map(LJoyVal, joyValMidLow, JoyValMin, motorSpeedMin, motorSpeedMax);
-      MotorForwardL(motorSpeed);
+      LmotorSpeed = map(LJoyVal, joyValMidLow, JoyValMin, motorSpeedMin, motorSpeedMax);
+      MotorForwardL(LmotorSpeed);
     }
     else
     {
@@ -112,22 +112,26 @@ void loop() {
     }
 
     if (RJoyVal > joyValMidHigh ) { //drive right reverse
-      motorSpeed = map(RJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
-      MotorReverseR(motorSpeed);
+      RmotorSpeed = map(RJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
+      MotorReverseR(RmotorSpeed);
     }
     else if (RJoyVal < joyValMidLow ) { //drive right foward
-      motorSpeed = map(RJoyVal, joyValMidLow, JoyValMin, motorSpeedMin, motorSpeedMax);
-      MotorForwardR(motorSpeed);
+      RmotorSpeed = map(RJoyVal, joyValMidLow, JoyValMin, motorSpeedMin, motorSpeedMax);
+      MotorForwardR(RmotorSpeed);
     }
     else
     {
       MotorStopR();
     }
 
-    //Serial.print(F("\r\nLeftHatY: "));            //For Debug, remove me
-    //Serial.print(PS4.getAnalogHat(LeftHatY));
-    //Serial.print(F("\tRightHatY: "));
-    //Serial.print(PS4.getAnalogHat(RightHatY));
+       Serial.print(F("\r\nLeftHatY: "));            //For Debug, remove me
+       Serial.print(PS4.getAnalogHat(LeftHatY));
+       Serial.print(F("\tRightHatY: "));
+       Serial.print(PS4.getAnalogHat(RightHatY));
+       Serial.print(F("\tMotorSpeed: "));
+       Serial.print(LmotorSpeed);
+       Serial.print(F("\tMotorSpeed: "));
+       Serial.print(RmotorSpeed);
   }
   //---------------------------------------------------------------------------------------------------------------------------------
 
@@ -137,33 +141,31 @@ void loop() {
   R2TrigVal = PS4.getAnalogButton(R2);
 
     if (R2TrigVal > TrigBaseVal){
-      motorSpeed = map(R2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
-      NeckMotorL(motorSpeed);
+      NmotorSpeed = map(R2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
+      NeckMotorL(NmotorSpeed);
   }
   else if(L2TrigVal > TrigBaseVal){
-      motorSpeed = map(L2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
-      NeckMotorR(motorSpeed);    
+      NmotorSpeed = map(L2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
+      NeckMotorR(NmotorSpeed);    
   }
   else 
   {
     MotorStop();    
   }
 
-//motorL2R2SpeedPin, L2R2motorDirPin
-//NeckMotorL
-  
+/*  
       if (PS4.getAnalogButton(L2) || PS4.getAnalogButton(R2)) { // These are the only analog buttons on the PS4 controller
         Serial.print(F("\r\nL2: "));
         Serial.print(PS4.getAnalogButton(L2));
         Serial.print(F("\tR2: "));
         Serial.print(PS4.getAnalogButton(R2));
         Serial.print(F("\tMotorSpeed: "));
-        Serial.print(motorSpeed);
+        Serial.print(NmotorSpeed);
         //Serial.print(F("\tTrigVal: "));
         //Serial.print();               
       }
   
-
+*/
 //trigger rumbles
 /*  
       if (PS4.getAnalogButton(L2) != oldL2Value || PS4.getAnalogButton(R2) != oldR2Value) // Only write value if it's different
@@ -183,23 +185,22 @@ void loop() {
 
 //buttons, rumble and led flash
   /*
-      else {
-        if (PS4.getButtonClick(TRIANGLE)) {
-          Serial.print(F("\r\nTraingle"));
-          PS4.setRumbleOn(RumbleLow);
-        }
-        if (PS4.getButtonClick(CIRCLE)) {
-          Serial.print(F("\r\nCircle"));
-          PS4.setRumbleOn(RumbleHigh);
-        }
-        if (PS4.getButtonClick(CROSS)) {
-          Serial.print(F("\r\nCross"));
-          PS4.setLedFlash(10, 10); // Set it to blink rapidly
-        }
-        if (PS4.getButtonClick(SQUARE)) {
-          Serial.print(F("\r\nSquare"));
-          PS4.setLedFlash(0, 0); // Turn off blinking
-        }
+      if (PS4.getButtonClick(TRIANGLE)) {
+        Serial.print(F("\r\nTraingle"));
+        PS4.setRumbleOn(RumbleLow);
+      }
+      if (PS4.getButtonClick(CIRCLE)) {
+        Serial.print(F("\r\nCircle"));
+        PS4.setRumbleOn(RumbleHigh);
+      }
+      if (PS4.getButtonClick(CROSS)) {
+        Serial.print(F("\r\nCross"));
+        PS4.setLedFlash(10, 10); // Set it to blink rapidly
+      }
+      if (PS4.getButtonClick(SQUARE)) {
+        Serial.print(F("\r\nSquare"));
+        PS4.setLedFlash(0, 0); // Turn off blinking
+      }
   */
 //---------------------------------------------------------------------------------------------------------------------------------
 
