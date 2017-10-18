@@ -45,8 +45,8 @@ int RJoyVal = 0;
 int JoyValMax = 255;
 int JoyValMid = 255/2;
 int JoyValMin = 0;
-int joyValMidHigh = JoyValMid + 5; //0-20
-int joyValMidLow = JoyValMid - 5;
+int joyValMidHigh = JoyValMid + 10; //0-20
+int joyValMidLow = JoyValMid - 10;
 
 int L2TrigVal = 0;
 int R2TrigVal = 0;
@@ -108,6 +108,7 @@ void loop() {
     }
     else
     {
+      LmotorSpeed = 0;
       MotorStopL();
     }
 
@@ -121,6 +122,7 @@ void loop() {
     }
     else
     {
+      RmotorSpeed = 0;
       MotorStopR();
     }
 
@@ -128,9 +130,9 @@ void loop() {
        Serial.print(PS4.getAnalogHat(LeftHatY));
        Serial.print(F("\tRightHatY: "));
        Serial.print(PS4.getAnalogHat(RightHatY));
-       Serial.print(F("\tMotorSpeed: "));
+       Serial.print(F("\tLMotorSpeed: "));
        Serial.print(LmotorSpeed);
-       Serial.print(F("\tMotorSpeed: "));
+       Serial.print(F("\tRMotorSpeed: "));
        Serial.print(RmotorSpeed);
   }
   //---------------------------------------------------------------------------------------------------------------------------------
@@ -150,6 +152,7 @@ void loop() {
   }
   else 
   {
+    NmotorSpeed = 0;
     MotorStop();    
   }
 
@@ -183,25 +186,25 @@ void loop() {
 
 //---------------------------------------------------------------------------------------------------------------------------------
 
-//buttons, rumble and led flash
-  /*
+//buttons, rumble and led flash to be replaced by servo opperations.
+  
       if (PS4.getButtonClick(TRIANGLE)) {
         Serial.print(F("\r\nTraingle"));
-        PS4.setRumbleOn(RumbleLow);
+        //PS4.setRumbleOn(RumbleLow);
       }
       if (PS4.getButtonClick(CIRCLE)) {
         Serial.print(F("\r\nCircle"));
-        PS4.setRumbleOn(RumbleHigh);
+        //PS4.setRumbleOn(RumbleHigh);
       }
       if (PS4.getButtonClick(CROSS)) {
         Serial.print(F("\r\nCross"));
-        PS4.setLedFlash(10, 10); // Set it to blink rapidly
+        //PS4.setLedFlash(10, 10); // Set it to blink rapidly
       }
       if (PS4.getButtonClick(SQUARE)) {
         Serial.print(F("\r\nSquare"));
-        PS4.setLedFlash(0, 0); // Turn off blinking
+        //PS4.setLedFlash(0, 0); // Turn off blinking
       }
-  */
+  
 //---------------------------------------------------------------------------------------------------------------------------------
 
 //D-pad and colors
