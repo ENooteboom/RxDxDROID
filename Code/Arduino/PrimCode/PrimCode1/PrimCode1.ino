@@ -1,6 +1,6 @@
 #include <PS4BT.h>
-#include <usbhub.h>
 #include <Servo.h>
+#include <usbhub.h>
 
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
@@ -125,7 +125,7 @@ void loop() {
       RmotorSpeed = 0;
       MotorStopR();
     }
-
+/*
        Serial.print(F("\r\nLeftHatY: "));            //For Debug, remove me
        Serial.print(PS4.getAnalogHat(LeftHatY));
        Serial.print(F("\tRightHatY: "));
@@ -134,6 +134,7 @@ void loop() {
        Serial.print(LmotorSpeed);
        Serial.print(F("\tRMotorSpeed: "));
        Serial.print(RmotorSpeed);
+*/
   }
   //---------------------------------------------------------------------------------------------------------------------------------
 
