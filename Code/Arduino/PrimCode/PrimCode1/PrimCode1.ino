@@ -1,5 +1,7 @@
 #include <PS4BT.h>
-#include <Servo.h>
+//#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
 #include <usbhub.h>
 
 #ifdef dobogusinclude
@@ -58,6 +60,16 @@ byte LmotorSpeed = 0;
 byte RmotorSpeed = 0;
 byte motorSpeedMin = 0; //based on motor 0 - 90 pwm ish
 byte motorSpeedMax = 255;
+
+
+//---------------------------------------------------------------------------------------------------------------------------------
+//Servo stuff
+
+    Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
+    int SERVOMIN = 0; //these are not set, defalt values are reminders 
+    int SERVOMAX = 180;
+
+
 //---------------------------------------------------------------------------------------------------------------------------------
 
 void setup() {
@@ -82,6 +94,13 @@ void setup() {
   pinMode(L2R2motorDirPin, OUTPUT);
   //pinMode(, OUTPUT);
   //pinMode(, OUTPUT);
+
+  //Servo
+  pwm1.begin();
+  pwm1.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
+  
+  //for l8r 
+  //pulselength = map(degrees, 0, 180, SERVOMIN, SERVOMAX);
   
 }
 //---------------------------------------------------------------------------------------------------------------------------------
