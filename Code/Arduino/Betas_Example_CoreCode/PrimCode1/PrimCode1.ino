@@ -1,7 +1,14 @@
+//2501ZEDD main
+//Project written by Eric Nooteboom and Family
+//Optimized for Arduino Mega ADK 2560
+
 #include <PS4BT.h>
 //#include <Servo.h>
 #include <Wire.h>
+#include <SoftwareSerial.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <Adafruit_NeoPixel.h>
+//#include <Adafruit_Soundboard.h>
 #include <usbhub.h>
 
 #ifdef dobogusinclude
@@ -26,18 +33,28 @@ PS4BT PS4(&Btd, PAIR);
 uint8_t oldL2Value, oldR2Value;
 
 //---------------------------------------------------------------------------------------------------------------------------------
-//drive pin numbers
+//Motor/Drive pin numbers
+//NB is Pin 7, 
 
-//const byte joyStickPin4L3 = ????;
+//const byte joyStickPinL3 = ????;
 //const byte joyStickPinR3 = ????;
 
-const byte motorL2R2SpeedPin = 3; //neck motor
-const byte L2R2motorDirPin = 7; //neck turn direction??????
+const byte motorL2R2SpeedPin = 24; //neck motor
+const byte L2R2motorDirPin = 4; //neck turn direction??????
 
-const byte motorL3SpeedPin = 5; //left drive motor
-const byte motorR3SpeedPin = 6; //right drive motor
-const byte LmotorDirPin = 2; //direction of left drive motor
-const byte RmotorDirPin = 4; //direction of left drive motor
+const byte motorL3SpeedPin = 2; //left drive motor
+const byte motorR3SpeedPin = 3; //right drive motor
+const byte LmotorDirPin = 22; //direction of left drive motor
+const byte RmotorDirPin = 23; //direction of left drive motor
+
+const byte LeftShoulderMotorPin = 5; //2-3-2 conversion motors
+const byte RightShoulderMotorPin = 6;
+const byte LeftShoulderDirPin = 26;
+const byte RightShoulderDirPin = 27;
+
+const byte LegLiftMotorPin = 8; //not sure if going to use dc motor or stepper motor for this 
+const byte LegLiftDirPin = 25; //due to the fact there will be no visual of the foot
+
 //---------------------------------------------------------------------------------------------------------------------------------
 //varialbes
 
@@ -45,7 +62,7 @@ const byte RmotorDirPin = 4; //direction of left drive motor
 int LJoyVal = 0;
 int RJoyVal = 0;
 int JoyValMax = 255;
-int JoyValMid = 255/2;
+int JoyValMid = 255 / 2;
 int JoyValMin = 0;
 int joyValMidHigh = JoyValMid + 10; //0-20
 int joyValMidLow = JoyValMid - 10;
@@ -65,9 +82,17 @@ byte motorSpeedMax = 255;
 //---------------------------------------------------------------------------------------------------------------------------------
 //Servo stuff
 
-    Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
-    int SERVOMIN = 0; //these are not set, defalt values are reminders 
-    int SERVOMAX = 180;
+Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
+Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(0x41);
+
+int SERVOMIN = 0; //these are not set, defalt values are reminders
+int SERVOMAX = 180;
+
+//---------------------------------------------------------------------------------------------------------------------------------
+//NeoPixel stuff
+
+//#define NUMPIXELS     54
+
 
 
 //---------------------------------------------------------------------------------------------------------------------------------
@@ -92,16 +117,26 @@ void setup() {
 
   pinMode(motorL2R2SpeedPin, OUTPUT);
   pinMode(L2R2motorDirPin, OUTPUT);
+  
+  pinMode(LeftShoulderMotorPin, OUTPUT);
+  pinMode(RightShoulderMotorPin, OUTPUT);
+  pinMode(LeftShoulderDirPin, OUTPUT);
+  pinMode(RightShoulderDirPin, OUTPUT);
+
+  pinMode(LegLiftMotorPin, OUTPUT);
+  pinMode(LegLiftDirPin, OUTPUT);  
+  
   //pinMode(, OUTPUT);
-  //pinMode(, OUTPUT);
+
 
   //Servo
   pwm1.begin();
   pwm1.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
-  
-  //for l8r 
+  pwm2.begin();
+  pwm2.setPWMFreq(60);
+  //for l8r
   //pulselength = map(degrees, 0, 180, SERVOMIN, SERVOMAX);
-  
+
 }
 //---------------------------------------------------------------------------------------------------------------------------------
 
@@ -109,7 +144,7 @@ void setup() {
 void loop() {
   Usb.Task();
 
-//code below
+  //code below
   if (PS4.connected()) {
 
     //test for motor motion/jitter, analog joystick tank drive, forward and reverse with output
@@ -144,91 +179,91 @@ void loop() {
       RmotorSpeed = 0;
       MotorStopR();
     }
-/*
-       Serial.print(F("\r\nLeftHatY: "));            //For Debug, remove me
-       Serial.print(PS4.getAnalogHat(LeftHatY));
-       Serial.print(F("\tRightHatY: "));
-       Serial.print(PS4.getAnalogHat(RightHatY));
-       Serial.print(F("\tLMotorSpeed: "));
-       Serial.print(LmotorSpeed);
-       Serial.print(F("\tRMotorSpeed: "));
-       Serial.print(RmotorSpeed);
-*/
+    /*
+           Serial.print(F("\r\nLeftHatY: "));            //For Debug, remove me
+           Serial.print(PS4.getAnalogHat(LeftHatY));
+           Serial.print(F("\tRightHatY: "));
+           Serial.print(PS4.getAnalogHat(RightHatY));
+           Serial.print(F("\tLMotorSpeed: "));
+           Serial.print(LmotorSpeed);
+           Serial.print(F("\tRMotorSpeed: "));
+           Serial.print(RmotorSpeed);
+    */
   }
   //---------------------------------------------------------------------------------------------------------------------------------
 
-//triggers for head rotations,0 - 255 is max for pull
+  //triggers for head rotations,0 - 255 is max for pull
 
   L2TrigVal = PS4.getAnalogButton(L2);
   R2TrigVal = PS4.getAnalogButton(R2);
 
-    if (R2TrigVal > TrigBaseVal){
-      NmotorSpeed = map(R2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
-      NeckMotorL(NmotorSpeed);
+  if (R2TrigVal > TrigBaseVal) {
+    NmotorSpeed = map(R2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
+    NeckMotorL(NmotorSpeed);
   }
-  else if(L2TrigVal > TrigBaseVal){
-      NmotorSpeed = map(L2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
-      NeckMotorR(NmotorSpeed);    
+  else if (L2TrigVal > TrigBaseVal) {
+    NmotorSpeed = map(L2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
+    NeckMotorR(NmotorSpeed);
   }
-  else 
+  else
   {
     NmotorSpeed = 0;
-    MotorStop();    
+    MotorStop();
   }
 
-/*  
-      if (PS4.getAnalogButton(L2) || PS4.getAnalogButton(R2)) { // These are the only analog buttons on the PS4 controller
-        Serial.print(F("\r\nL2: "));
-        Serial.print(PS4.getAnalogButton(L2));
-        Serial.print(F("\tR2: "));
-        Serial.print(PS4.getAnalogButton(R2));
-        Serial.print(F("\tMotorSpeed: "));
-        Serial.print(NmotorSpeed);
-        //Serial.print(F("\tTrigVal: "));
-        //Serial.print();               
-      }
-  
-*/
-//trigger rumbles
-/*  
-      if (PS4.getAnalogButton(L2) != oldL2Value || PS4.getAnalogButton(R2) != oldR2Value) // Only write value if it's different
-        PS4.setRumbleOn(PS4.getAnalogButton(L2), PS4.getAnalogButton(R2));
-      oldL2Value = PS4.getAnalogButton(L2);
-      oldR2Value = PS4.getAnalogButton(R2);
-*/  
-//---------------------------------------------------------------------------------------------------------------------------------
+  /*
+        if (PS4.getAnalogButton(L2) || PS4.getAnalogButton(R2)) { // These are the only analog buttons on the PS4 controller
+          Serial.print(F("\r\nL2: "));
+          Serial.print(PS4.getAnalogButton(L2));
+          Serial.print(F("\tR2: "));
+          Serial.print(PS4.getAnalogButton(R2));
+          Serial.print(F("\tMotorSpeed: "));
+          Serial.print(NmotorSpeed);
+          //Serial.print(F("\tTrigVal: "));
+          //Serial.print();
+        }
 
-//ps disconnect
+  */
+  //trigger rumbles
+  /*
+        if (PS4.getAnalogButton(L2) != oldL2Value || PS4.getAnalogButton(R2) != oldR2Value) // Only write value if it's different
+          PS4.setRumbleOn(PS4.getAnalogButton(L2), PS4.getAnalogButton(R2));
+        oldL2Value = PS4.getAnalogButton(L2);
+        oldR2Value = PS4.getAnalogButton(R2);
+  */
+  //---------------------------------------------------------------------------------------------------------------------------------
+
+  //ps robit SPLODE button
   if (PS4.getButtonClick(PS)) {
     Serial.print(F("\r\nPS"));
-    PS4.disconnect();
+    
   }
 
-//---------------------------------------------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------
 
-//buttons, rumble and led flash to be replaced by servo opperations.
-  
-      if (PS4.getButtonClick(TRIANGLE)) {
-        Serial.print(F("\r\nTraingle"));
-        //PS4.setRumbleOn(RumbleLow);
-      }
-      if (PS4.getButtonClick(CIRCLE)) {
-        Serial.print(F("\r\nCircle"));
-        //PS4.setRumbleOn(RumbleHigh);
-      }
-      if (PS4.getButtonClick(CROSS)) {
-        Serial.print(F("\r\nCross"));
-        //PS4.setLedFlash(10, 10); // Set it to blink rapidly
-      }
-      if (PS4.getButtonClick(SQUARE)) {
-        Serial.print(F("\r\nSquare"));
-        //PS4.setLedFlash(0, 0); // Turn off blinking
-      }
-  
-//---------------------------------------------------------------------------------------------------------------------------------
+  //buttons, rumble and led flash to be replaced by servo opperations.
 
-//D-pad and colors
-  /*
+  if (PS4.getButtonClick(TRIANGLE)) {
+    Serial.print(F("\r\nTraingle"));
+    //PS4.setRumbleOn(RumbleLow);
+  }
+  if (PS4.getButtonClick(CIRCLE)) {
+    Serial.print(F("\r\nCircle"));
+    //PS4.setRumbleOn(RumbleHigh);
+  }
+  if (PS4.getButtonClick(CROSS)) {
+    Serial.print(F("\r\nCross"));
+    //PS4.setLedFlash(10, 10); // Set it to blink rapidly
+  }
+  if (PS4.getButtonClick(SQUARE)) {
+    Serial.print(F("\r\nSquare"));
+    //PS4.setLedFlash(0, 0); // Turn off blinking
+  }
+
+  //---------------------------------------------------------------------------------------------------------------------------------
+
+  //D-pad and colors to be replaced by more servo operations
+  
         if (PS4.getButtonClick(UP)) {
           Serial.print(F("\r\nUp"));
           PS4.setLed(Red);
@@ -242,10 +277,10 @@ void loop() {
           Serial.print(F("\r\nLeft"));
           PS4.setLed(Green);
         }
-  */
-//---------------------------------------------------------------------------------------------------------------------------------
+  
+  //---------------------------------------------------------------------------------------------------------------------------------
 
-//L1,L3,R1,R3 buttons
+  //L1, L3 click, R1, R3 click buttons
   /*
         if (PS4.getButtonClick(L1))
           Serial.print(F("\r\nL1"));
@@ -256,29 +291,41 @@ void loop() {
         if (PS4.getButtonClick(R3))
           Serial.print(F("\r\nR3"));
   */
-//---------------------------------------------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------
 
-//share and options
-  /*
+  //share and options for disconnect and 2-3-2 conversion sequence respectively
+  
         if (PS4.getButtonClick(SHARE))
           Serial.print(F("\r\nShare"));
+          PS4.disconnect();
+          
         if (PS4.getButtonClick(OPTIONS)) {
-          Serial.print(F("\r\nOptions"));
-          printAngle = !printAngle;
-        }
-  */
-//---------------------------------------------------------------------------------------------------------------------------------
+          Serial.print(F("\r\n2-3-2 Conversion Sequence"));
 
-//touchpad
+                                                //start with interlocking all movment mechanisms
+
+
+                                                //Execute, set, and update status flags for position
+
+
+                                                //Finish conversion and release interlock
+          
+          
+        }
+
+  
+  //---------------------------------------------------------------------------------------------------------------------------------
+
+  //touchpad, unutilized
   /*
         if (PS4.getButtonClick(TOUCHPAD)) {
           Serial.print(F("\r\nTouchpad"));
           printTouch = !printTouch;
         }
   */
-//---------------------------------------------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------
 
-//tilt for options
+  //tilt for options, unutilized
   /*
         if (printAngle) { // Print angle calculated using the accelerometer only
           Serial.print(F("\r\nPitch: "));
@@ -287,9 +334,9 @@ void loop() {
           Serial.print(PS4.getAngle(Roll));
         }
   */
-//---------------------------------------------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------
 
-//touch for touchpad
+  //touch for touchpad, unutilized
   /*
         if (printTouch) { // Print the x, y coordinates of the touchpad
           if (PS4.isTouching(0) || PS4.isTouching(1)) // Print newline and carriage return if any of the fingers are touching the touchpad
@@ -305,63 +352,63 @@ void loop() {
           }
         }
   */
-//---------------------------------------------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------
 
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------
 
 //Drive Motor Functions
-    void MotorForwardL( byte Spd)
-    {
-     digitalWrite(LmotorDirPin, HIGH);
-     analogWrite(motorL3SpeedPin, Spd);
-    }
+void MotorForwardL( byte Spd)
+{
+  digitalWrite(LmotorDirPin, HIGH);
+  analogWrite(motorL3SpeedPin, Spd);
+}
 
-    void MotorReverseL( byte Spd)
-    {
-      digitalWrite(LmotorDirPin, LOW);
-      analogWrite(motorL3SpeedPin, Spd);
-    }
-    void MotorForwardR( byte Spd)
-    {
-      digitalWrite(RmotorDirPin, HIGH);
-      analogWrite(motorR3SpeedPin, Spd);
-    }
+void MotorReverseL( byte Spd)
+{
+  digitalWrite(LmotorDirPin, LOW);
+  analogWrite(motorL3SpeedPin, Spd);
+}
+void MotorForwardR( byte Spd)
+{
+  digitalWrite(RmotorDirPin, HIGH);
+  analogWrite(motorR3SpeedPin, Spd);
+}
 
-    void MotorReverseR( byte Spd)
-    {
-     digitalWrite(RmotorDirPin, LOW);
-     analogWrite(motorR3SpeedPin, Spd);
-    }
+void MotorReverseR( byte Spd)
+{
+  digitalWrite(RmotorDirPin, LOW);
+  analogWrite(motorR3SpeedPin, Spd);
+}
 
-    void MotorStopL()
-    {
-      analogWrite(motorL3SpeedPin, 0);
-    }
+void MotorStopL()
+{
+  analogWrite(motorL3SpeedPin, 0);
+}
 
-    void MotorStopR()
-    {
-     analogWrite(motorR3SpeedPin, 0);
-    }
+void MotorStopR()
+{
+  analogWrite(motorR3SpeedPin, 0);
+}
 
 //Neck Motor Functions
-    void NeckMotorL( byte Spd)
-    {
-     digitalWrite(L2R2motorDirPin, HIGH);
-     analogWrite(motorR3SpeedPin, Spd);
-    }
+void NeckMotorL( byte Spd)
+{
+  digitalWrite(L2R2motorDirPin, HIGH);
+  analogWrite(motorR3SpeedPin, Spd);
+}
 
-    void NeckMotorR( byte Spd)
-    {
-     digitalWrite(L2R2motorDirPin, LOW);
-     analogWrite(motorR3SpeedPin, Spd);
-    }
+void NeckMotorR( byte Spd)
+{
+  digitalWrite(L2R2motorDirPin, LOW);
+  analogWrite(motorR3SpeedPin, Spd);
+}
 
-    void MotorStop()
-    {
-      analogWrite(motorL2R2SpeedPin, 0);
-    }
+void MotorStop()
+{
+  analogWrite(motorL2R2SpeedPin, 0);
+}
 
 //---------------------------------------------------------------------------------------------------------------------------------
 
