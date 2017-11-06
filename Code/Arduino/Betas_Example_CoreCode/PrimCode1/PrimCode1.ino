@@ -9,6 +9,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_NeoPixel.h>
 //#include <Adafruit_Soundboard.h>
+#include <SPP.h>
 #include <usbhub.h>
 
 #ifdef dobogusinclude
@@ -34,7 +35,7 @@ uint8_t oldL2Value, oldR2Value;
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //Motor/Drive pin numbers
-//NB is Pin 7, 
+//NB is Pin 7,
 
 //const byte joyStickPinL3 = ????;
 //const byte joyStickPinR3 = ????;
@@ -52,7 +53,7 @@ const byte RightShoulderMotorPin = 6;
 const byte LeftShoulderDirPin = 26;
 const byte RightShoulderDirPin = 27;
 
-const byte LegLiftMotorPin = 8; //not sure if going to use dc motor or stepper motor for this 
+const byte LegLiftMotorPin = 8; //not sure if going to use dc motor or stepper motor for this
 const byte LegLiftDirPin = 25; //due to the fact there will be no visual of the foot
 
 //---------------------------------------------------------------------------------------------------------------------------------
@@ -87,6 +88,8 @@ Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(0x41);
 
 int SERVOMIN = 0; //these are not set, defalt values are reminders
 int SERVOMAX = 180;
+int pulselen;    // variable
+int servo = 0;
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //NeoPixel stuff
@@ -117,15 +120,15 @@ void setup() {
 
   pinMode(motorL2R2SpeedPin, OUTPUT);
   pinMode(L2R2motorDirPin, OUTPUT);
-  
+
   pinMode(LeftShoulderMotorPin, OUTPUT);
   pinMode(RightShoulderMotorPin, OUTPUT);
   pinMode(LeftShoulderDirPin, OUTPUT);
   pinMode(RightShoulderDirPin, OUTPUT);
 
   pinMode(LegLiftMotorPin, OUTPUT);
-  pinMode(LegLiftDirPin, OUTPUT);  
-  
+  pinMode(LegLiftDirPin, OUTPUT);
+
   //pinMode(, OUTPUT);
 
 
@@ -236,7 +239,7 @@ void loop() {
   //ps robit SPLODE button
   if (PS4.getButtonClick(PS)) {
     Serial.print(F("\r\nPS"));
-    
+
   }
 
   //---------------------------------------------------------------------------------------------------------------------------------
@@ -246,6 +249,15 @@ void loop() {
   if (PS4.getButtonClick(TRIANGLE)) {
     Serial.print(F("\r\nTraingle"));
     //PS4.setRumbleOn(RumbleLow);
+    for (pulselen = 50; pulselen < 950; pulselen++) {
+      pwm1.setPWM(servo, 0, pulselen);
+    }
+    delay(2000);
+
+    for (pulselen = 950; pulselen > 50; pulselen--) {
+      pwm1.setPWM(servo, 0, pulselen);
+    }
+    delay(2000);
   }
   if (PS4.getButtonClick(CIRCLE)) {
     Serial.print(F("\r\nCircle"));
@@ -263,21 +275,21 @@ void loop() {
   //---------------------------------------------------------------------------------------------------------------------------------
 
   //D-pad and colors to be replaced by more servo operations
-  
-        if (PS4.getButtonClick(UP)) {
-          Serial.print(F("\r\nUp"));
-          PS4.setLed(Red);
-        } if (PS4.getButtonClick(RIGHT)) {
-          Serial.print(F("\r\nRight"));
-          PS4.setLed(Blue);
-        } if (PS4.getButtonClick(DOWN)) {
-          Serial.print(F("\r\nDown"));
-          PS4.setLed(Yellow);
-        } if (PS4.getButtonClick(LEFT)) {
-          Serial.print(F("\r\nLeft"));
-          PS4.setLed(Green);
-        }
-  
+
+  if (PS4.getButtonClick(UP)) {
+    Serial.print(F("\r\nUp"));
+    PS4.setLed(Red);
+  } if (PS4.getButtonClick(RIGHT)) {
+    Serial.print(F("\r\nRight"));
+    PS4.setLed(Blue);
+  } if (PS4.getButtonClick(DOWN)) {
+    Serial.print(F("\r\nDown"));
+    PS4.setLed(Yellow);
+  } if (PS4.getButtonClick(LEFT)) {
+    Serial.print(F("\r\nLeft"));
+    PS4.setLed(Green);
+  }
+
   //---------------------------------------------------------------------------------------------------------------------------------
 
   //L1, L3 click, R1, R3 click buttons
@@ -294,26 +306,26 @@ void loop() {
   //---------------------------------------------------------------------------------------------------------------------------------
 
   //share and options for disconnect and 2-3-2 conversion sequence respectively
-  
-        if (PS4.getButtonClick(SHARE))
-          Serial.print(F("\r\nShare"));
-          PS4.disconnect();
-          
-        if (PS4.getButtonClick(OPTIONS)) {
-          Serial.print(F("\r\n2-3-2 Conversion Sequence"));
 
-                                                //start with interlocking all movment mechanisms
+  if (PS4.getButtonClick(SHARE))
+    Serial.print(F("\r\nShare"));
+  PS4.disconnect();
 
+  if (PS4.getButtonClick(OPTIONS)) {
+    Serial.print(F("\r\n2-3-2 Conversion Sequence"));
 
-                                                //Execute, set, and update status flags for position
+    //start with interlocking all movment mechanisms
 
 
-                                                //Finish conversion and release interlock
-          
-          
-        }
+    //Execute, set, and update status flags for position
 
-  
+
+    //Finish conversion and release interlock
+
+
+  }
+
+
   //---------------------------------------------------------------------------------------------------------------------------------
 
   //touchpad, unutilized
