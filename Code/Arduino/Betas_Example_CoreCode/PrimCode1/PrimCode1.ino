@@ -91,7 +91,7 @@ int SERVOMAX = 180;
 //---------------------------------------------------------------------------------------------------------------------------------
 //NeoPixel stuff
 
-//#define NUMPIXELS     54
+//#define NUMPIXELS     16
 
 
 
@@ -134,7 +134,7 @@ void setup() {
   pwm1.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
   pwm2.begin();
   pwm2.setPWMFreq(60);
-  //for l8r
+  //example form the example library
   //pulselength = map(degrees, 0, 180, SERVOMIN, SERVOMAX);
 
 }
@@ -180,7 +180,7 @@ void loop() {
       MotorStopR();
     }
     /*
-           Serial.print(F("\r\nLeftHatY: "));            //For Debug, remove me
+           Serial.print(F("\r\nLeftHatY: "));            //For Debug purposes
            Serial.print(PS4.getAnalogHat(LeftHatY));
            Serial.print(F("\tRightHatY: "));
            Serial.print(PS4.getAnalogHat(RightHatY));
@@ -233,7 +233,7 @@ void loop() {
   */
   //---------------------------------------------------------------------------------------------------------------------------------
 
-  //ps robit SPLODE button
+  //ps robit SPLODE button, for interlock release and overdrive functions
   if (PS4.getButtonClick(PS)) {
     Serial.print(F("\r\nPS"));
     
