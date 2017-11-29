@@ -3,7 +3,7 @@
 //Optimized for Arduino Mega ADK 2560
 
 #include <PS4BT.h>
-//#include <Servo.h>
+//#include <Servo.h> do i need?
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <Adafruit_PWMServoDriver.h>
@@ -30,11 +30,11 @@ PS4BT PS4(&Btd, PAIR);
 //PS4BT PS4(&Btd);
 
 //bool printAngle, printTouch;
-uint8_t oldL2Value, oldR2Value;
+//uint8_t oldL2Value, oldR2Value;
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //Motor/Drive pin numbers
-//NB is Pin 7, 
+//NB is Pin 7,
 
 //const byte joyStickPinL3 = ????;
 //const byte joyStickPinR3 = ????;
@@ -52,7 +52,7 @@ const byte RightShoulderMotorPin = 6;
 const byte LeftShoulderDirPin = 26;
 const byte RightShoulderDirPin = 27;
 
-const byte LegLiftMotorPin = 8; //not sure if going to use dc motor or stepper motor for this 
+const byte LegLiftMotorPin = 8; //not sure if going to use dc motor or stepper motor for this
 const byte LegLiftDirPin = 25; //due to the fact there will be no visual of the foot
 
 //---------------------------------------------------------------------------------------------------------------------------------
@@ -85,15 +85,32 @@ byte motorSpeedMax = 255;
 Adafruit_PWMServoDriver pwm1 = Adafruit_PWMServoDriver(0x40);
 Adafruit_PWMServoDriver pwm2 = Adafruit_PWMServoDriver(0x41);
 
-int SERVOMIN = 0; //these are not set, defalt values are reminders
-int SERVOMAX = 180;
+int servo = 0;
+int pulselen;
+//int SERVOMIN = 0; //these are not set, defalt values are reminders
+//int SERVOMAX = 180; //not used beccuase of cheap servos
+
+//pulselength = map(degrees, 0, 180, SERVOMIN, SERVOMAX); //min-max to degree conversion
+
+#define CLOSED_00   0
+#define OPEN_00   950
+#define CLOSED_01   0
+#define OPEN_01   950
+#define CLOSED_02   300   //?holo
+#define OPEN_02   520   //?holo
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //NeoPixel stuff
 
 //#define NUMPIXELS     16
+//#define NeoPin        46
 
+//---------------------------------------------------------------------------------------------------------------------------------
+//Sound
 
+//define SFX_TX
+//define SFX_RX
+//define SFX_RST
 
 //---------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,15 +134,15 @@ void setup() {
 
   pinMode(motorL2R2SpeedPin, OUTPUT);
   pinMode(L2R2motorDirPin, OUTPUT);
-  
+
   pinMode(LeftShoulderMotorPin, OUTPUT);
   pinMode(RightShoulderMotorPin, OUTPUT);
   pinMode(LeftShoulderDirPin, OUTPUT);
   pinMode(RightShoulderDirPin, OUTPUT);
 
   pinMode(LegLiftMotorPin, OUTPUT);
-  pinMode(LegLiftDirPin, OUTPUT);  
-  
+  pinMode(LegLiftDirPin, OUTPUT);
+
   //pinMode(, OUTPUT);
 
 
@@ -143,8 +160,8 @@ void setup() {
 
 void loop() {
   Usb.Task();
+  unsigned long currentMillis = millis();
 
-  //code below
   if (PS4.connected()) {
 
     //test for motor motion/jitter, analog joystick tank drive, forward and reverse with output
@@ -152,11 +169,11 @@ void loop() {
     LJoyVal = PS4.getAnalogHat(LeftHatY);
     RJoyVal = PS4.getAnalogHat(RightHatY);
 
-    if (LJoyVal > joyValMidHigh ) { //drive left reverse   ????????????????
+    if (LJoyVal > joyValMidHigh ) { //drive left reverse   ???????????????? dont know direction yet
       LmotorSpeed = map(LJoyVal, joyValMidHigh, JoyValMax, motorSpeedMin, motorSpeedMax);
       MotorReverseL(LmotorSpeed);
     }
-    else if (LJoyVal < joyValMidLow ) { //drive left forward   ????????????
+    else if (LJoyVal < joyValMidLow ) { //drive left forward   ???????????? dont know direction yet
       LmotorSpeed = map(LJoyVal, joyValMidLow, JoyValMin, motorSpeedMin, motorSpeedMax);
       MotorForwardL(LmotorSpeed);
     }
@@ -189,173 +206,218 @@ void loop() {
            Serial.print(F("\tRMotorSpeed: "));
            Serial.print(RmotorSpeed);
     */
-  }
-  //---------------------------------------------------------------------------------------------------------------------------------
 
-  //triggers for head rotations,0 - 255 is max for pull
+    //---------------------------------------------------------------------------------------------------------------------------------
 
-  L2TrigVal = PS4.getAnalogButton(L2);
-  R2TrigVal = PS4.getAnalogButton(R2);
+    //triggers for head rotations,0 - 255 is max for pull
 
-  if (R2TrigVal > TrigBaseVal) {
-    NmotorSpeed = map(R2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
-    NeckMotorL(NmotorSpeed);
-  }
-  else if (L2TrigVal > TrigBaseVal) {
-    NmotorSpeed = map(L2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
-    NeckMotorR(NmotorSpeed);
-  }
-  else
-  {
-    NmotorSpeed = 0;
-    MotorStop();
-  }
+    L2TrigVal = PS4.getAnalogButton(L2);
+    R2TrigVal = PS4.getAnalogButton(R2);
 
-  /*
-        if (PS4.getAnalogButton(L2) || PS4.getAnalogButton(R2)) { // These are the only analog buttons on the PS4 controller
-          Serial.print(F("\r\nL2: "));
-          Serial.print(PS4.getAnalogButton(L2));
-          Serial.print(F("\tR2: "));
-          Serial.print(PS4.getAnalogButton(R2));
-          Serial.print(F("\tMotorSpeed: "));
-          Serial.print(NmotorSpeed);
-          //Serial.print(F("\tTrigVal: "));
-          //Serial.print();
+    if (R2TrigVal > TrigBaseVal) {
+      NmotorSpeed = map(R2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
+      NeckMotorL(NmotorSpeed);
+    }
+    else if (L2TrigVal > TrigBaseVal) {
+      NmotorSpeed = map(L2TrigVal, 0, 255, motorSpeedMin, motorSpeedMax);
+      NeckMotorR(NmotorSpeed);
+    }
+    else
+    {
+      NmotorSpeed = 0;
+      MotorStop();
+    }
+
+    /*
+          if (PS4.getAnalogButton(L2) || PS4.getAnalogButton(R2)) { // These are the only analog buttons on the PS4 controller
+            Serial.print(F("\r\nL2: "));
+            Serial.print(PS4.getAnalogButton(L2));
+            Serial.print(F("\tR2: "));
+            Serial.print(PS4.getAnalogButton(R2));
+            Serial.print(F("\tMotorSpeed: "));
+            Serial.print(NmotorSpeed);
+            //Serial.print(F("\tTrigVal: "));
+            //Serial.print();
+          }
+
+    */
+    //trigger rumbles
+    /*
+          if (PS4.getAnalogButton(L2) != oldL2Value || PS4.getAnalogButton(R2) != oldR2Value) // Only write value if it's different
+            PS4.setRumbleOn(PS4.getAnalogButton(L2), PS4.getAnalogButton(R2));
+          oldL2Value = PS4.getAnalogButton(L2);
+          oldR2Value = PS4.getAnalogButton(R2);
+    */
+    //---------------------------------------------------------------------------------------------------------------------------------
+
+    //ps robit SPLODE button, for interlock release and overdrive functions
+    if (PS4.getButtonClick(PS)) {
+      Serial.print(F("\r\nPS"));
+
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------------
+
+    //buttons, rumble and led flash to be replaced by servo opperations.
+
+    if (PS4.getButtonClick(TRIANGLE)) {
+      Serial.print(F("\r\nTraingle"));
+      //PS4.setRumbleOn(RumbleLow);
+      {
+        for (pulselen = 50; pulselen < 950; pulselen++) {
+          pwm1.setPWM(servo, 0, pulselen);
         }
+        delay(2000);
 
-  */
-  //trigger rumbles
-  /*
-        if (PS4.getAnalogButton(L2) != oldL2Value || PS4.getAnalogButton(R2) != oldR2Value) // Only write value if it's different
-          PS4.setRumbleOn(PS4.getAnalogButton(L2), PS4.getAnalogButton(R2));
-        oldL2Value = PS4.getAnalogButton(L2);
-        oldR2Value = PS4.getAnalogButton(R2);
-  */
-  //---------------------------------------------------------------------------------------------------------------------------------
-
-  //ps robit SPLODE button, for interlock release and overdrive functions
-  if (PS4.getButtonClick(PS)) {
-    Serial.print(F("\r\nPS"));
-    
-  }
-
-  //---------------------------------------------------------------------------------------------------------------------------------
-
-  //buttons, rumble and led flash to be replaced by servo opperations.
-
-  if (PS4.getButtonClick(TRIANGLE)) {
-    Serial.print(F("\r\nTraingle"));
-    //PS4.setRumbleOn(RumbleLow);
-  }
-  if (PS4.getButtonClick(CIRCLE)) {
-    Serial.print(F("\r\nCircle"));
-    //PS4.setRumbleOn(RumbleHigh);
-  }
-  if (PS4.getButtonClick(CROSS)) {
-    Serial.print(F("\r\nCross"));
-    //PS4.setLedFlash(10, 10); // Set it to blink rapidly
-  }
-  if (PS4.getButtonClick(SQUARE)) {
-    Serial.print(F("\r\nSquare"));
-    //PS4.setLedFlash(0, 0); // Turn off blinking
-  }
-
-  //---------------------------------------------------------------------------------------------------------------------------------
-
-  //D-pad and colors to be replaced by more servo operations
-  
-        if (PS4.getButtonClick(UP)) {
-          Serial.print(F("\r\nUp"));
-          PS4.setLed(Red);
-        } if (PS4.getButtonClick(RIGHT)) {
-          Serial.print(F("\r\nRight"));
-          PS4.setLed(Blue);
-        } if (PS4.getButtonClick(DOWN)) {
-          Serial.print(F("\r\nDown"));
-          PS4.setLed(Yellow);
-        } if (PS4.getButtonClick(LEFT)) {
-          Serial.print(F("\r\nLeft"));
-          PS4.setLed(Green);
+        for (pulselen = 950; pulselen > 50; pulselen--) {
+          pwm1.setPWM(servo, 0, pulselen);
         }
-  
-  //---------------------------------------------------------------------------------------------------------------------------------
-
-  //L1, L3 click, R1, R3 click buttons
-  /*
-        if (PS4.getButtonClick(L1))
-          Serial.print(F("\r\nL1"));
-        if (PS4.getButtonClick(L3))
-          Serial.print(F("\r\nL3"));
-        if (PS4.getButtonClick(R1))
-          Serial.print(F("\r\nR1"));
-        if (PS4.getButtonClick(R3))
-          Serial.print(F("\r\nR3"));
-  */
-  //---------------------------------------------------------------------------------------------------------------------------------
-
-  //share and options for disconnect and 2-3-2 conversion sequence respectively
-  
-        if (PS4.getButtonClick(SHARE))
-          Serial.print(F("\r\nShare"));
-          PS4.disconnect();
-          
-        if (PS4.getButtonClick(OPTIONS)) {
-          Serial.print(F("\r\n2-3-2 Conversion Sequence"));
-
-                                                //start with interlocking all movment mechanisms
-
-
-                                                //Execute, set, and update status flags for position
-
-
-                                                //Finish conversion and release interlock
-          
-          
+        delay(2000);
+      }
+    }
+    if (PS4.getButtonClick(CIRCLE)) {
+      Serial.print(F("\r\nCircle"));
+      //PS4.setRumbleOn(RumbleHigh);
+      {
+        //for (pulselen = 50; pulselen < 950; pulselen++) {
+          pwm1.setPWM(1, 0, pulselen);
         }
+        delay(2000);
 
-  
-  //---------------------------------------------------------------------------------------------------------------------------------
-
-  //touchpad, unutilized
-  /*
-        if (PS4.getButtonClick(TOUCHPAD)) {
-          Serial.print(F("\r\nTouchpad"));
-          printTouch = !printTouch;
+        for (pulselen = 950; pulselen > 50; pulselen--) {
+          pwm1.setPWM(1, 0, pulselen);
         }
-  */
-  //---------------------------------------------------------------------------------------------------------------------------------
-
-  //tilt for options, unutilized
-  /*
-        if (printAngle) { // Print angle calculated using the accelerometer only
-          Serial.print(F("\r\nPitch: "));
-          Serial.print(PS4.getAngle(Pitch));
-          Serial.print(F("\tRoll: "));
-          Serial.print(PS4.getAngle(Roll));
+        delay(2000);
+      }
+    }
+    if (PS4.getButtonClick(CROSS)) {
+      Serial.print(F("\r\nCross"));
+      //PS4.setLedFlash(10, 10); // Set it to blink rapidly
+      {
+        for (pulselen = 50; pulselen < 950; pulselen++) {
+          pwm1.setPWM(servo, 0, pulselen);
         }
-  */
-  //---------------------------------------------------------------------------------------------------------------------------------
+        delay(2000);
 
-  //touch for touchpad, unutilized
-  /*
-        if (printTouch) { // Print the x, y coordinates of the touchpad
-          if (PS4.isTouching(0) || PS4.isTouching(1)) // Print newline and carriage return if any of the fingers are touching the touchpad
-            Serial.print(F("\r\n"));
-          for (uint8_t i = 0; i < 2; i++) { // The touchpad track two fingers
-            if (PS4.isTouching(i)) { // Print the position of the finger if it is touching the touchpad
-              Serial.print(F("X")); Serial.print(i + 1); Serial.print(F(": "));
-              Serial.print(PS4.getX(i));
-              Serial.print(F("\tY")); Serial.print(i + 1); Serial.print(F(": "));
-              Serial.print(PS4.getY(i));
-              Serial.print(F("\t"));
+        for (pulselen = 950; pulselen > 50; pulselen--) {
+          pwm1.setPWM(servo, 0, pulselen);
+        }
+        delay(2000);
+      }
+    }
+    if (PS4.getButtonClick(SQUARE)) {
+      Serial.print(F("\r\nSquare"));
+      //PS4.setLedFlash(0, 0); // Turn off blinking
+      {
+        for (pulselen = 50; pulselen < 950; pulselen++) {
+          pwm1.setPWM(servo, 0, pulselen);
+        }
+        delay(2000);
+
+        for (pulselen = 950; pulselen > 50; pulselen--) {
+          pwm1.setPWM(servo, 0, pulselen);
+        }
+        delay(2000);
+      }
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------------
+
+    //D-pad and colors to be replaced by more servo operations
+
+    if (PS4.getButtonClick(UP)) {
+      Serial.print(F("\r\nUp"));
+      PS4.setLed(Red);
+    } if (PS4.getButtonClick(RIGHT)) {
+      Serial.print(F("\r\nRight"));
+      PS4.setLed(Blue);
+    } if (PS4.getButtonClick(DOWN)) {
+      Serial.print(F("\r\nDown"));
+      PS4.setLed(Yellow);
+    } if (PS4.getButtonClick(LEFT)) {
+      Serial.print(F("\r\nLeft"));
+      PS4.setLed(Green);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------------------
+
+    //L1, L3 click, R1, R3 click buttons
+    /*
+          if (PS4.getButtonClick(L1))
+            Serial.print(F("\r\nL1"));
+          if (PS4.getButtonClick(L3))
+            Serial.print(F("\r\nL3"));
+          if (PS4.getButtonClick(R1))
+            Serial.print(F("\r\nR1"));
+          if (PS4.getButtonClick(R3))
+            Serial.print(F("\r\nR3"));
+    */
+    //---------------------------------------------------------------------------------------------------------------------------------
+
+    //share and options for disconnect and 2-3-2 conversion sequence respectively
+
+    if (PS4.getButtonClick(SHARE)) {
+      Serial.print(F("\r\nShare"));
+      PS4.disconnect();
+    }
+
+    if (PS4.getButtonClick(OPTIONS)) {
+      Serial.print(F("\r\n2-3-2 Conversion Sequence"));
+
+      //start with interlocking all movment mechanisms
+
+
+      //Execute, set, and update status flags for position
+
+
+      //Finish conversion and release interlock
+
+
+    }
+
+
+    //---------------------------------------------------------------------------------------------------------------------------------
+
+    //touchpad, unutilized
+    /*
+          if (PS4.getButtonClick(TOUCHPAD)) {
+            Serial.print(F("\r\nTouchpad"));
+            printTouch = !printTouch;
+          }
+    */
+    //---------------------------------------------------------------------------------------------------------------------------------
+
+    //tilt for options, unutilized
+    /*
+          if (printAngle) { // Print angle calculated using the accelerometer only
+            Serial.print(F("\r\nPitch: "));
+            Serial.print(PS4.getAngle(Pitch));
+            Serial.print(F("\tRoll: "));
+            Serial.print(PS4.getAngle(Roll));
+          }
+    */
+    //---------------------------------------------------------------------------------------------------------------------------------
+
+    //touch for touchpad, unutilized
+    /*
+          if (printTouch) { // Print the x, y coordinates of the touchpad
+            if (PS4.isTouching(0) || PS4.isTouching(1)) // Print newline and carriage return if any of the fingers are touching the touchpad
+              Serial.print(F("\r\n"));
+            for (uint8_t i = 0; i < 2; i++) { // The touchpad track two fingers
+              if (PS4.isTouching(i)) { // Print the position of the finger if it is touching the touchpad
+                Serial.print(F("X")); Serial.print(i + 1); Serial.print(F(": "));
+                Serial.print(PS4.getX(i));
+                Serial.print(F("\tY")); Serial.print(i + 1); Serial.print(F(": "));
+                Serial.print(PS4.getY(i));
+                Serial.print(F("\t"));
+              }
             }
           }
-        }
-  */
-  //---------------------------------------------------------------------------------------------------------------------------------
+    */
+    //---------------------------------------------------------------------------------------------------------------------------------
 
+  }
 }
-
 //---------------------------------------------------------------------------------------------------------------------------------
 
 //Drive Motor Functions
