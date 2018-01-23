@@ -342,19 +342,19 @@ void loop() {
     //---------------------------------------------------------------------------------------------------------------------------------
 
     //L1, L3 click, R1, R3 click buttons
-    /*
-          if (PS4.getButtonClick(L1))
-            Serial.print(F("\r\nL1"));
-          if (PS4.getButtonClick(L3))
-            Serial.print(F("\r\nL3"));
-          if (PS4.getButtonClick(R1))
-            Serial.print(F("\r\nR1"));
-          if (PS4.getButtonClick(R3))
-            Serial.print(F("\r\nR3"));
-    */
+    
+          if (PS4.getButtonClick(L1))	//stop music 
+            //Serial.print(F("\r\nL1"));
+          if (PS4.getButtonClick(L3))	//volume down
+            //Serial.print(F("\r\nL3"));
+          if (PS4.getButtonClick(R1))	//resume track/next track
+            //Serial.print(F("\r\nR1"));
+          if (PS4.getButtonClick(R3))	//volume up
+            //Serial.print(F("\r\nR3"));
+    
     //---------------------------------------------------------------------------------------------------------------------------------
 
-    //share and options for disconnect and 2-3-2 conversion sequence respectively
+    //share and options for disconnect controller and 2-3-2 conversion sequence respectively
 
     if (PS4.getButtonClick(SHARE)) {
       Serial.print(F("\r\nShare"));
@@ -378,16 +378,21 @@ void loop() {
 
     //---------------------------------------------------------------------------------------------------------------------------------
 
-    //touchpad, unutilized
-    /*
+    //touchpad, change LED color for battery indicator for controller
+    
+	//green = 100 - 61
+	//yellow = 60 - 36
+	//red = 35 - 10
+	//red flashing override 9-0
+
           if (PS4.getButtonClick(TOUCHPAD)) {
-            Serial.print(F("\r\nTouchpad"));
-            printTouch = !printTouch;
+            //Serial.print(F("\r\nTouchpad"));
+            //printTouch = !printTouch;
           }
-    */
+    
     //---------------------------------------------------------------------------------------------------------------------------------
 
-    //tilt for options, unutilized
+    //tilt gyro tracking, unutilized
     /*
           if (printAngle) { // Print angle calculated using the accelerometer only
             Serial.print(F("\r\nPitch: "));
@@ -398,7 +403,7 @@ void loop() {
     */
     //---------------------------------------------------------------------------------------------------------------------------------
 
-    //touch for touchpad, unutilized
+    //track touch for touchpad, unutilized
     /*
           if (printTouch) { // Print the x, y coordinates of the touchpad
             if (PS4.isTouching(0) || PS4.isTouching(1)) // Print newline and carriage return if any of the fingers are touching the touchpad
