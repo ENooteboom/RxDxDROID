@@ -1,21 +1,21 @@
 //2501ZEDD main
-//Project written by Eric Nooteboom and Family
-//Optimized for Arduino Mega ADK 2560
+//Project written by Eric Nooteboom
+//Optimized for Arduino Mega "ADK" 2560
 
 #include <PS4BT.h>
-//#include <Servo.h> do i need?
+//#include <Servo.h> do u need?
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <Adafruit_NeoPixel.h>
-//#include <Adafruit_Soundboard.h>
+//#include <Adafruit_NeoPixel.h> //commeted out because of faulty library
+#include <Adafruit_Soundboard.h>
 #include <usbhub.h>
 
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#endif
+//#ifdef dobogusinclude
+//#include <spi4teensy3.h>
+//#endif
 
-#include <SPI.h>
+//#include <SPI.h>
 
 USB Usb;
 //USBHub Hub1(&Usb); // Some dongles have a hub inside
@@ -26,18 +26,9 @@ BTD Btd(&Usb); // You have to create the Bluetooth Dongle instance
 // You will need to hold down the PS and Share button at the same time, the PS4 controller will then start to blink rapidly indicating that it is in pairing mode
 PS4BT PS4(&Btd, PAIR);
 
-// After that you can simply create the instance like so and then press the PS button on the device
-//PS4BT PS4(&Btd);
-
-//bool printAngle, printTouch;
-//uint8_t oldL2Value, oldR2Value;
-
 //---------------------------------------------------------------------------------------------------------------------------------
 //Motor/Drive pin numbers
-//NB is Pin 7,
-
-//const byte joyStickPinL3 = ????;
-//const byte joyStickPinR3 = ????;
+//*NB is Pin 7
 
 const byte motorL2R2SpeedPin = 24; //neck motor
 const byte L2R2motorDirPin = 4; //neck turn direction??????
@@ -108,14 +99,20 @@ int pulselen;
 //---------------------------------------------------------------------------------------------------------------------------------
 //Sound
 
-//define SFX_TX
-//define SFX_RX
-//define SFX_RST
+#define SFX_TX          18 
+#define SFX_RX          19
+
+#define SFX_RST         28        
+
+SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX); 
+
+
 
 //---------------------------------------------------------------------------------------------------------------------------------
 
 void setup() {
   //serial debug for ps4 bt test
+  ss.begin(9600);   //baud for sound board
   Serial.begin(115200);
 #if !defined(__MIPSEL__)
   while (!Serial); // Wait for serial port to connect for debud monitoring - TAKE OUT
@@ -152,7 +149,14 @@ void setup() {
   pwm2.begin();
   pwm2.setPWMFreq(60);
   //example form the example library
-  //pulselength = map(degrees, 0, 180, SERVOMIN, SERVOMAX);
+  
+
+  //Pixels
+  //pixels.begin();
+  
+  
+  //Sound
+  //
 
 }
 //---------------------------------------------------------------------------------------------------------------------------------
