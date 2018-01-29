@@ -14,7 +14,7 @@
 //#include <spi4teensy3.h>
 //#endif
 
-//#include <SPI.h>
+//#include <SPI.h> //need to find out if I need for breakout serial interfacing communication
 
 USB Usb;
 //USBHub Hub1(&Usb); // Some dongles have a hub inside
@@ -106,7 +106,6 @@ int pulselen;
 SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX); 
 
 
-
 //---------------------------------------------------------------------------------------------------------------------------------
 
 void setup() {
@@ -139,8 +138,6 @@ void setup() {
   pinMode(LegLiftMotorPin, OUTPUT);
   pinMode(LegLiftDirPin, OUTPUT);
 
-  //pinMode(, OUTPUT);
-
 
   //Servo
   pwm1.begin();
@@ -158,6 +155,8 @@ void setup() {
   //
 
 }
+
+
 //---------------------------------------------------------------------------------------------------------------------------------
 
 
