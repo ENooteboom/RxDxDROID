@@ -3,11 +3,10 @@
 //Optimized for Arduino Mega "ADK" 2560
 
 #include <PS4BT.h>
-//#include <Servo.h> do u need?
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <Adafruit_PWMServoDriver.h>
-//#include <Adafruit_NeoPixel.h> //commeted out because of faulty library
+#include <Adafruit_NeoPixel.h> 
 #include <Adafruit_Soundboard.h>
 #include <usbhub.h>
 
@@ -93,8 +92,8 @@ int pulselen;
 //---------------------------------------------------------------------------------------------------------------------------------
 //NeoPixel stuff
 
-//#define NUMPIXELS     16
-//#define NeoPin        46
+#define NUMPIXELS     16
+#define NeoPin        46
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //Sound
