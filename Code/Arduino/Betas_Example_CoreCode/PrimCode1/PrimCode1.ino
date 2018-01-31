@@ -6,7 +6,7 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <Adafruit_NeoPixel.h> 
+#include <Adafruit_NeoPixel.h>
 #include <Adafruit_Soundboard.h>
 #include <usbhub.h>
 
@@ -24,6 +24,10 @@ BTD Btd(&Usb); // You have to create the Bluetooth Dongle instance
 // This will start an inquiry and then pair with the PS4 controller - you only have to do this once
 // You will need to hold down the PS and Share button at the same time, the PS4 controller will then start to blink rapidly indicating that it is in pairing mode
 PS4BT PS4(&Btd, PAIR);
+//---------------------------------------------------------------------------------------------------------------------------------
+//Timing Varibles for Millis
+
+
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //Motor/Drive pin numbers
@@ -92,19 +96,21 @@ int pulselen;
 //---------------------------------------------------------------------------------------------------------------------------------
 //NeoPixel stuff
 
-#define NUMPIXELS     16
+#define NUMPIXELS     16 //is this a running total of neopix????
 #define NeoPin        46
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //Sound
 
-#define SFX_TX          18 
+#define SFX_TX          18
 #define SFX_RX          19
+#define SFX_RST         28
 
-#define SFX_RST         28        
+SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX);
 
-SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX); 
+int trackPlayNum = 0; //Var to keep of track cycle
 
+//Adafruit_Soundboard sfx = Adafruit_Soundboard(&ss, NULL, SFX_RST); //specific for arduino mega adk, modify later
 
 //---------------------------------------------------------------------------------------------------------------------------------
 
@@ -145,14 +151,13 @@ void setup() {
   pwm2.begin();
   pwm2.setPWMFreq(60);
   //example form the example library
-  
+
 
   //Pixels
   //pixels.begin();
-  
-  
-  //Sound
-  //
+
+
+
 
 }
 
@@ -344,16 +349,30 @@ void loop() {
     //---------------------------------------------------------------------------------------------------------------------------------
 
     //L1, L3 click, R1, R3 click buttons
+    //Sound and Music
+    // if (ch5sound == 4) { sfx.playTrack("T23     OGG"); }
+
+    if (PS4.getButtonClick(L1))	//stop music
+    {
+      //Serial.print(F("\r\nL1"));
+
+    }
+
+    if (PS4.getButtonClick(L3))	//volume down
+    {
+      //Serial.print(F("\r\nL3"));
+    }
     
-          if (PS4.getButtonClick(L1))	//stop music 
-            //Serial.print(F("\r\nL1"));
-          if (PS4.getButtonClick(L3))	//volume down
-            //Serial.print(F("\r\nL3"));
-          if (PS4.getButtonClick(R1))	//resume track/next track
-            //Serial.print(F("\r\nR1"));
-          if (PS4.getButtonClick(R3))	//volume up
-            //Serial.print(F("\r\nR3"));
-    
+    if (PS4.getButtonClick(R1))	//resume track/next track
+    {
+      //Serial.print(F("\r\nR1"));
+    }
+
+    if (PS4.getButtonClick(R3))	//volume up
+    {
+      //Serial.print(F("\r\nR3"));
+    }
+
     //---------------------------------------------------------------------------------------------------------------------------------
 
     //share and options for disconnect controller and 2-3-2 conversion sequence respectively
@@ -381,17 +400,17 @@ void loop() {
     //---------------------------------------------------------------------------------------------------------------------------------
 
     //touchpad, change LED color for battery indicator for controller
-    
-	//green = 100 - 61
-	//yellow = 60 - 36
-	//red = 35 - 10
-	//red flashing override 9-0
 
-          if (PS4.getButtonClick(TOUCHPAD)) {
-            //Serial.print(F("\r\nTouchpad"));
-            //printTouch = !printTouch;
-          }
-    
+    //green = 100 - 61
+    //yellow = 60 - 36
+    //red = 35 - 10
+    //red flashing override 9-0
+
+    if (PS4.getButtonClick(TOUCHPAD)) {
+      //Serial.print(F("\r\nTouchpad"));
+      //printTouch = !printTouch;
+    }
+
     //---------------------------------------------------------------------------------------------------------------------------------
 
     //tilt gyro tracking, unutilized
