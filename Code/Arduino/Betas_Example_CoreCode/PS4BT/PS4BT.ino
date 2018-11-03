@@ -1,5 +1,6 @@
 #include <PS4BT.h>
 #include <usbhub.h>
+#include <Usb.h>
 
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
@@ -34,7 +35,6 @@ void setup() {
 }
 void loop() {
   Usb.Task();
-
   if (PS4.connected()) {
     if (PS4.getAnalogHat(LeftHatX) > 137 || PS4.getAnalogHat(LeftHatX) < 117 || PS4.getAnalogHat(LeftHatY) > 137 || PS4.getAnalogHat(LeftHatY) < 117 || PS4.getAnalogHat(RightHatX) > 137 || PS4.getAnalogHat(RightHatX) < 117 || PS4.getAnalogHat(RightHatY) > 137 || PS4.getAnalogHat(RightHatY) < 117) {
       Serial.print(F("\r\nLeftHatX: "));

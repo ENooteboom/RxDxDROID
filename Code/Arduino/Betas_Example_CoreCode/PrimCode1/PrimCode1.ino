@@ -10,11 +10,11 @@
 #include <Adafruit_Soundboard.h>
 #include <usbhub.h>
 
-//#ifdef dobogusinclude
-//#include <spi4teensy3.h>
-//#endif
+#ifdef dobogusinclude
+#include <spi4teensy3.h>
+#endif
 
-//#include <SPI.h> //need to find out if I need for breakout serial interfacing communication
+#include <SPI.h> //need to find out if I need for breakout serial interfacing communication
 
 USB Usb;
 //USBHub Hub1(&Usb); // Some dongles have a hub inside

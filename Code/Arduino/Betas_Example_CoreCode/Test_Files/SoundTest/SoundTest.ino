@@ -2,10 +2,10 @@
 #include "Adafruit_Soundboard.h"
 
 // Choose any two pins that can be used with SoftwareSerial to RX & TX
-#define SFX_TX 18
-#define SFX_RX 19
+#define SFX_TX 12
+#define SFX_RX 10
 // Connect to the RST pin on the Sound Board
-#define SFX_RST 4
+#define SFX_RST 32
 
 // we'll be using software serial
 SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX);
@@ -16,15 +16,22 @@ SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX);
 Adafruit_Soundboard sfx = Adafruit_Soundboard(&ss, NULL, SFX_RST);
 
 void setup() {
-  
+  Serial.begin(115200);
+  Serial.println("Adafruit Sound Board!");
   ss.begin(9600);
+  if (!sfx.reset()) {
+    Serial.println("Not found");
+    while (1);
+  }
+  Serial.println("SFX board found");
 }
+
 
 void loop()
 
 {
-
-    sfx.playTrack("T01     OGG"); //the neon demon - kenobi 
+    
+    sfx.playTrack("T01     OGG"); //currently star wars cantina
 
 }
 
