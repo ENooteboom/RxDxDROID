@@ -1,5 +1,5 @@
 //2501ZEDD main
-//Project written by Eric Nooteboom
+//Project written by Eric Nooteboom, Michelle Anselmo
 //Optimized for Arduino Mega "ADK" 2560
 
 #include <PS4BT.h>
