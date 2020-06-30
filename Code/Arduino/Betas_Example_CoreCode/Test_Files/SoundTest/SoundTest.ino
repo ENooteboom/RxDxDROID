@@ -1,37 +1,24 @@
+Set to play only using the RX (from microcontroller to serial bus) on UNO
 #include <SoftwareSerial.h>
 #include "Adafruit_Soundboard.h"
 
-// Choose any two pins that can be used with SoftwareSerial to RX & TX
-#define SFX_TX 12
-#define SFX_RX 10
+#define SFX_TX 5 //not needed
+#define SFX_RX 6
 // Connect to the RST pin on the Sound Board
-#define SFX_RST 32
+#define SFX_RST 4//not needed but could use for a manual reset
 
 // we'll be using software serial
 SoftwareSerial ss = SoftwareSerial(SFX_TX, SFX_RX);
 
-// pass the software serial to Adafruit_soundboard, the second
-// argument is the debug port (not used really) and the third 
-// arg is the reset pin
 Adafruit_Soundboard sfx = Adafruit_Soundboard(&ss, NULL, SFX_RST);
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Adafruit Sound Board!");
   ss.begin(9600);
-  if (!sfx.reset()) {
-    Serial.println("Not found");
-    while (1);
-  }
-  Serial.println("SFX board found");
 }
 
-
-void loop()
-
-{
-    
-    sfx.playTrack("T01     OGG"); //currently star wars cantina
-
+void loop() {
+sfx.playTrack("YES     OGG"); //soundfile *capitols only
+delay(4000);
+sfx.playTrack("NO      OGG"); //soundfile
+delay(4000);
 }
-
