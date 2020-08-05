@@ -1,4 +1,4 @@
-Set to play only using the RX (from microcontroller to serial bus) on UNO
+//Set to play only using the RX (from microcontroller to serial bus) on UNO
 #include <SoftwareSerial.h>
 #include "Adafruit_Soundboard.h"
 
