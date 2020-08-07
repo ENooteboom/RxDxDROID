@@ -2,6 +2,8 @@
 //Project written by Eric Nooteboom, Michelle Anselmo
 //Optimized for Arduino Mega "ADK" 2560
 
+// NOTE* outdated and not supported
+
 #include <PS4BT.h>
 #include <Wire.h>
 #include <SoftwareSerial.h>
@@ -27,6 +29,9 @@ PS4BT PS4(&Btd, PAIR);
 //---------------------------------------------------------------------------------------------------------------------------------
 //Timing Varibles for Millis
 
+
+//NOT NEEDED: rendition of code going to be made for HITEX INFINEON Aurix TC275 SheildBuddy
+//i.e tldr 3 cores for threading
 
 
 //---------------------------------------------------------------------------------------------------------------------------------
